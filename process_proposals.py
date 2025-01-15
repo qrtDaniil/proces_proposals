@@ -35,10 +35,13 @@ class ProcessProposals(commands.Cog):
             # Конвертируем datetime в строки
             json.dump({str(user_id): timestamp.isoformat() for user_id, timestamp in self.cooldown_tracker.items()}, file)
 
-    @commands.slash_command(description="Принять предложение для голосования.")
-    async def init_proposal(self, ctx):
+    @commands.slash_command(description="Принять предложение для голосования")
+    async def init_proposal(self, ctx, comment: str = discord.Option(default=None, description="Комментарий по предложению, который будет добавлен к сообщению голосования")):
         """
         Отправляет сообщение канал где была прописана и сообщение в соседний канал ссылкой на изначальный канал.
+
+        Аргументы:
+        - comment: Комментарий по предложению, добавляемый к сообщению в канале голосований.
         """
         # Проверяем, вызвана ли команда в ветке форума для того что бы потом мы могли проверить parent_id
         if not ctx.channel.type == discord.ChannelType.public_thread:
@@ -61,12 +64,15 @@ class ProcessProposals(commands.Cog):
         proposal_post_autor = ctx.channel.owner_id # Получаем id автора поста
         command_autor = ctx.author.id # Получаем id автора команды
 
+        # Формируем текст комментария (если он есть)
+        comment_text = f"\nКомментарий от принявшего предложение: {comment}" if comment else ""
+
         try:
             # Отправляем сообщение в канал голосований
             target_message = await target_channel.send(
-                f"Предложение {proposal_post_url} принято на голосование.\n"
-                f"Автор предложения: <@{proposal_post_autor}>.\n"
-                f"Предложения принял: <@{command_autor}>.\n"
+                f"Предложение {proposal_post_url} принято на голосование\n"
+                f"Автор предложения: <@{proposal_post_autor}>\n"
+                f"Предложения принял: <@{command_autor}>{comment_text}\n"
                 "Дальнейшая судьба предложения будет решена по итогам голосования реакциями под этим сообщением.\n"
                 "⭐ — Я за реализацию данного предложения.\n❌ — Я против реализации данного предложения."
             )
