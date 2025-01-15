@@ -57,10 +57,9 @@ class ProcessProposals(commands.Cog):
                 f"Эту команду можно использовать только в канале <#{self.proposals_channel_id}> или <#{self.frontier_proposals_channel_id}>.", ephemeral=True)
             return
 
-        # Получаем ссылку на текущую ветку форума
-        proposal_post_url = ctx.channel.jump_url
-        proposal_post_autor = ctx.channel.owner_id
-        command_autor = ctx.author.id
+        proposal_post_url = ctx.channel.jump_url # Получаем ссылку на текущую ветку форума
+        proposal_post_autor = ctx.channel.owner_id # Получаем id автора поста
+        command_autor = ctx.author.id # Получаем id автора команды
 
         try:
             # Отправляем сообщение в канал голосований
