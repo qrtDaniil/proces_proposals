@@ -8,11 +8,11 @@ import os
 class ProcessProposals(commands.Cog):
     def __init__(self, client):
         self.client = client
-        self.voting_channel_id = 1328384299812126772 # ID канала для голосований
-        self.proposals_channel_id = 1328384138776150160 # ID канала предложений
-        self.frontier_voting_channel_id = 1329055733655801877 # ID канала для голосований Фронтира
-        self.frontier_proposals_channel_id = 1329055258701201408 # ID канала предложений Фронтира
-        self.deleted_proposals_channel_id = 1329059543098982451 # ID канала с логами
+        self.voting_channel_id = 1329180590335066152 # ID канала для голосований
+        self.proposals_channel_id = 1136964819732398110 # ID канала предложений
+        self.frontier_voting_channel_id = 1329180628507164672 # ID канала для голосований Фронтира
+        self.frontier_proposals_channel_id = 1278737130411261982 # ID канала предложений Фронтира
+        self.deleted_proposals_channel_id = 1161692042511011870 # ID канала с логами
         self.cooldown_tracker_file = os.path.join(os.path.dirname(__file__), "proposals_cooldown_tracker.json") # Имя файла для хранения данных
         self.cooldown_tracker = self.load_post_limit() # Данные из файла
 
