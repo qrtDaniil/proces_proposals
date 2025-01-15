@@ -104,7 +104,7 @@ class ProcessProposals(commands.Cog):
         if user_id in self.cooldown_tracker:
             last_post_time = self.cooldown_tracker[user_id]
             time_since_last_post = now - last_post_time
-            if time_since_last_post < datetime.timedelta(seconds=24):
+            if time_since_last_post < datetime.timedelta(hours=24):
                 # Получим канал для логов
                 log_channel = self.client.get_channel(self.deleted_proposals_channel_id)
                 # Отправим уведомление
