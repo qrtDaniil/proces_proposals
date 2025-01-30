@@ -101,37 +101,44 @@ class ProcessProposals(commands.Cog):
 
         # Проверяем, создавал ли пользователь пост в последние 24 часа
         now = datetime.datetime.now(datetime.timezone.utc)
-        if user_id in self.cooldown_tracker:
-            last_post_time = self.cooldown_tracker[user_id]
-            time_since_last_post = now - last_post_time
-            if time_since_last_post < datetime.timedelta(hours=24):
-                # Получим канал для логов
-                log_channel = self.client.get_channel(self.deleted_proposals_channel_id)
-                # Отправим уведомление
-                await thread.send(
-                    f"<@{user_id}> вы можете создать новую публикацию только раз в 24 часа. "
-                    "Этот пост будет удален через 30 секунд."
+        if user_id not in self.cooldown_tracker:
+            # Сохраняем время создания нового поста
+            self.cooldown_tracker[user_id] = now
+            self.save_post_limit() # Сохраняем изменения
+            return
+            
+        last_post_time = self.cooldown_tracker[user_id]
+        time_since_last_post = now - last_post_time
+        if time_since_last_post >= datetime.timedelta(hours=24):
+            return
+        # Получим канал для логов
+        log_channel = self.client.get_channel(self.deleted_proposals_channel_id)
+        # Отправим уведомление
+        await thread.send(
+            f"<@{user_id}> вы можете создать новую публикацию только раз в 24 часа. "
+            "Этот пост будет удален через 30 секунд."
+        )
+        
+        await asyncio.sleep(30) # Ждём 30 секунд перед удалением поста что бы человек прочитал ответное сообщение
+
+        # Проверяем, существует ли пост перед удалением
+        if thread and thread.id not in [t.id for t in thread.parent.threads]:
+            return
+        try:
+            await thread.delete()
+
+            # Отправка лога об удалении поста
+            if log_channel:
+                await log_channel.send(
+                    f"Пост с заголовком: {thread.name} был удалён. Автор: <@{user_id}>. "
+                    f"Причина: превышен лимит публикаций."
+                    f"Содержимое сообщения: {starter_message.content}"
                 )
-                
-                await asyncio.sleep(30) # Ждём 30 секунд перед удалением поста что бы человек прочитал ответное сообщение
-
-                # Проверяем, существует ли пост перед удалением
-                if thread and thread.id in [t.id for t in thread.parent.threads]:
-                    try:
-                        await thread.delete()
-
-                        # Отправка лога об удалении поста
-                        if log_channel:
-                            await log_channel.send(
-                                f"Пост с заголовком: {thread.name} был удалён. Автор: <@{user_id}>. "
-                                f"Причина: превышен лимит публикаций."
-                                f"Содержимое сообщения: {starter_message.content}"
-                            )
-                    except discord.HTTPException as e:
-                        if log_channel:
-                            await log_channel.send(
-                                f"Не удалось удалить ветку {thread.name}. Автор: <@{user_id}>. Ошибка: {e}"
-                            )
+        except discord.HTTPException as e:
+            if log_channel:
+                await log_channel.send(
+                    f"Не удалось удалить ветку {thread.name}. Автор: <@{user_id}>. Ошибка: {e}"
+                )
                 return
 
         # Сохраняем время создания нового поста
