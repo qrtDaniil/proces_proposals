@@ -17,6 +17,7 @@ class ProcessProposals(commands.Cog):
         # self.cooldown_tracker = self.load_post_limit() # Данные из файла
         self.event_announcements_channel_id = 1361750066104111204 # ID канала для анонса о ивенте
         self.event_forum_channel_id = 1150335616425398312 # ID канала ивент-форума
+        self.event_schedule_channel_id = 1202319845551775794 # ID канала ивент-расписания
 
     # def load_post_limit(self):
     #     """Загружает данные из JSON-файла, если он существует."""
@@ -167,29 +168,30 @@ class ProcessProposals(commands.Cog):
             return
 
         # Получаем канал ивент-анонсов
-        if ctx.channel.parent_id == self.event_forum_channel_id:
+        if ctx.channel.parent_id == self.event_forum_channel_id or ctx.channel.parent_id == self.event_schedule_channel_id:
             target_channel = ctx.guild.get_channel(self.event_announcements_channel_id)
 
         # Если не получили канал анонсов то либо не совпал id изначального канала с id с ивент-форума или ошибка в боте 
         if not target_channel:
             await ctx.respond(
-                f"Эту команду можно использовать только в канале <#{self.event_forum_channel_id}>", ephemeral=True)
+                f"Эту команду можно использовать только в канале <#{self.event_forum_channel_id}> или <#{self.event_schedule_channel_id}>", ephemeral=True)
             return
 
-        proposal_post_url = ctx.channel.jump_url # Получаем ссылку на текущую ветку форума
-        proposal_post_autor = ctx.channel.owner_id # Получаем id автора поста
+        post_url = ctx.channel.jump_url # Получаем ссылку на текущую ветку форума
+        post_autor = ctx.channel.owner_id # Получаем id автора поста
         command_autor = ctx.author.id # Получаем id автора команды
 
+        event_forum_url = f"\nСсылка на пост в ивент-форуме: {post_url}." if ctx.channel.parent_id == self.event_forum_channel_id else ""
+
         try:
-            # Отправляем сообщение в канал голосований
+            # Отправляем сообщение в канал ивент-аносов
             target_message = await target_channel.send(
                 "Оповещение об ивенте\n"
                 f"Заголовок ивента: {name}\n"
-                f"Автор ивента: <@{proposal_post_autor}>\n"
-                f"Идею принял: <@{command_autor}>\n"
+                f"Автор ивента: <@{post_autor}>\n"
+                f"Оповещение отправил: <@{command_autor}>\n"
                 f"Описание ивента: {desc}.\n"
-                f"Место и время проведения: {location}.\n"
-                f"Ссылка на пост в ивент-форуме: {proposal_post_url}.\n"
+                f"Место и время проведения: {location}.{event_forum_url}\n"
                 f"<@&{1167175964988559526}>"
             )
 
